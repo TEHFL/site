@@ -11,10 +11,29 @@
 <div class="fd-step" id="fd7"><div class="fd-meta">6 • Bring it with you</div><h2>What would you want to talk through with real people?</h2><p>You do not need a conclusion. Bring the thing that still has energy, tension, curiosity, or uncertainty around it.</p><textarea id="conversation" placeholder="The conversation I want to bring is..."></textarea><div class="fd-actions"><button class="btn" onclick="go(6)">← Back</button><button class="btn primary" onclick="showSummary()">See what I’m bringing →</button></div></div>
 <div class="fd-step" id="fd8"><div class="fd-meta">You’ve already started</div><h2>Here’s what became clearer.</h2><div class="summary-grid" id="summary"></div><div class="note" style="margin-top:14px"><strong>Your SIGNAL is saved.</strong> If you choose to register, we’ll keep this reflection connected to your event record.</div><div class="fd-actions"><button class="btn" onclick="go(7)">← Revisit</button><button class="btn gold" onclick="go(9)">Complete registration →</button></div></div>
 <div class="fd-step" id="fd9"><div class="fd-meta">Conversation Lab registration</div><h2>Only what’s still missing.</h2><div class="summary-grid"><input id="last" placeholder="Last name"><input id="mobile" placeholder="Mobile number"></div><label style="display:flex;gap:10px;margin-top:14px;align-items:flex-start;color:var(--ink-soft);font-size:13px"><input id="share" type="checkbox" checked style="width:auto;margin-top:3px"><span>Share my SIGNAL reflection with Jaymie before the Lab so the conversation can begin deeper.</span></label><div class="note" style="margin-top:14px">When you register, your event record and SIGNAL reflection are saved together.</div><div class="fd-actions"><button class="btn" onclick="go(8)">← Back</button><button class="btn primary" onclick="complete()">Register + save SIGNAL →</button></div></div>
-<div class="fd-step" id="fd10"><div class="fd-meta">Registration saved</div><h2>Come curious. Leave with greater clarity.</h2><p>Your registration and SIGNAL reflection have been sent to the participant tracker.</p><div class="note" id="completeText"></div><div class="fd-actions"><a class="btn" href="signal.html">Back to SIGNAL</a><button class="btn primary" onclick="resetFlow()">Run again</button></div></div>
+<div class="fd-step" id="fd10"><div class="fd-meta">Registration submitted</div><h2>Come curious. Leave with greater clarity.</h2><p>Your registration has been submitted to TEHFL.</p><div class="note" id="completeText"></div><div class="fd-actions"><a class="btn" href="signal.html">Back to SIGNAL</a><button class="btn primary" onclick="resetFlow()">Run again</button></div></div>
 </div></div>
 <script>
-const ENDPOINT="https://script.google.com/macros/s/AKfycbwafd_afYsxHGTYk34LFQEfvVmRY-ySPoSYYUUNimFuIU9xz5PyiSjm4yHcu1wPY2B36Q/exec";
+const FORM_ENDPOINT="https://docs.google.com/forms/d/1WPnG8Gd8LSeo0asDkYyX_EchxtpSFPDFOct-01FtY1A/formResponse";
+const FORM_FIELDS={
+  contactId:"entry.1183771810",
+  firstName:"entry.1581473206",
+  lastName:"entry.Last Name",
+  email:"entry.1655293817",
+  mobile:"entry.2080619303",
+  notice:"entry.1304397170",
+  signalVsNoise:"entry.880479960",
+  signalUnderSignal:"entry.944023374",
+  needs:"entry.158137039",
+  grace:"entry.2068595051",
+  conversation:"entry.186805965",
+  sharePreference:"entry.Share Preference",
+  event:"entry.1651405906",
+  source:"entry.706440621",
+  startedAt:"entry.830908518",
+  signalCompleted:"entry.1654791447",
+  registeredAt:"entry.795635831"
+};
 const key="signalFrontDoorV1";
 const idKey="signalRegistrantIdV1";
 const startedKey="signalStartedAtV1";
@@ -62,19 +81,39 @@ function data(){
 function saveLocal(){localStorage.setItem(key,JSON.stringify(data()))}
 function esc(s){return(s||"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))}
 
-async function sendToTracker(action,extra={}){
-  const payload={action,...data(),...extra};
+async function submitRegistration(){
+  const d=data();
+  const privateMode=d.sharePreference==="Private";
+  const params=new URLSearchParams();
+  const put=(key,value)=>params.append(FORM_FIELDS[key],value||"");
+  put("contactId",d.registrantId);
+  put("firstName",d.firstName);
+  put("lastName",d.lastName);
+  put("email",d.email);
+  put("mobile",d.mobile);
+  put("notice",privateMode?"":d.notice);
+  put("signalVsNoise",privateMode?"":d.signalVsNoise);
+  put("signalUnderSignal",privateMode?"":d.signalUnderSignal);
+  put("needs",privateMode?"":d.needs);
+  put("grace",privateMode?"":d.grace);
+  put("conversation",privateMode?"":d.conversation);
+  put("sharePreference",d.sharePreference);
+  put("event",d.event);
+  put("source",d.source);
+  put("startedAt",d.startedAt);
+  put("signalCompleted","Yes");
+  put("registeredAt",new Date().toISOString());
   try{
-    await fetch(ENDPOINT,{
+    await fetch(FORM_ENDPOINT,{
       method:"POST",
       mode:"no-cors",
-      headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify(payload),
+      headers:{"Content-Type":"application/x-www-form-urlencoded"},
+      body:params.toString(),
       keepalive:true
     });
     return true;
   }catch(err){
-    console.error("SIGNAL tracker write failed",err);
+    console.error("SIGNAL form submission failed",err);
     return false;
   }
 }
@@ -85,7 +124,6 @@ async function contactNext(){
   saveLocal();
   const btn=document.activeElement;
   if(btn){btn.disabled=true;btn.textContent="Saving…"}
-  await sendToTracker("saveProgress",{registrationStatus:"In Progress",signalCompleted:false});
   if(btn){btn.disabled=false;btn.textContent="Save & continue →"}
   go(3);
 }
@@ -101,7 +139,6 @@ async function showSummary(){
     ["Conversation to bring",d.conversation||"Still forming"]
   ];
   summary.innerHTML=rows.map(r=>`<div class="sum"><b>${esc(r[0])}</b>${esc(r[1])}</div>`).join("");
-  await sendToTracker("saveProgress",{registrationStatus:"In Progress",signalCompleted:true});
   go(8);
 }
 
@@ -111,7 +148,7 @@ async function complete(){
   saveLocal();
   const btn=document.activeElement;
   if(btn){btn.disabled=true;btn.textContent="Registering…"}
-  const ok=await sendToTracker("register",{registrationStatus:"Registered",signalCompleted:true,registeredAt:new Date().toISOString()});
+  const ok=await submitRegistration();
   if(btn){btn.disabled=false;btn.textContent="Register + save SIGNAL →"}
   let d=data();
   completeText.innerHTML=`<strong>${esc(d.firstName)} ${esc(d.lastName)}</strong><br>${esc(d.email)} • ${esc(d.mobile)}<br><br>Status: Registered • Share preference: ${esc(d.sharePreference)}${ok?"":"<br><br><strong>Connection issue:</strong> your browser kept your answers, but the tracker may need another submission."}`;
