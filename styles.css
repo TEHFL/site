@@ -67,3 +67,27 @@ a{color:inherit;text-decoration:none}img{max-width:100%;display:block}button{fon
   .signal-image{border-radius:22px}
   .footer{padding:28px 14px 38px}
 }
+
+/* Stable phone fallback: avoid iOS/in-app-browser lockups caused by swapping large form panels */
+@media(max-width:700px){
+  body.mobile-linear .frontdoor-wrap{margin-top:12px}
+  body.mobile-linear .fd-card{background:transparent;border:0;box-shadow:none;padding:0}
+  body.mobile-linear .fd-step{
+    display:block!important;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:22px 18px;
+    margin:0 0 18px;
+    box-shadow:0 10px 28px rgba(22,53,61,.08);
+    scroll-margin-top:74px;
+  }
+  body.mobile-linear #fd8,
+  body.mobile-linear #fd10{display:none!important}
+  body.mobile-linear #fd8.mobile-reached,
+  body.mobile-linear #fd10.mobile-reached{display:block!important}
+  body.mobile-linear .fd-actions{grid-template-columns:1fr}
+  body.mobile-linear .fd-actions .btn,
+  body.mobile-linear .fd-actions button,
+  body.mobile-linear .fd-actions a{width:100%}
+}
