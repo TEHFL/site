@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SIGNAL Front Door</title><meta name="description" content="Bring what’s on your mind. Start the conversation."><link rel="stylesheet" href="styles.css"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SIGNAL Front Door</title><meta name="description" content="Bring what’s on your mind. Start the conversation."><link rel="stylesheet" href="styles.css"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"></head><body><script>if(window.matchMedia&&window.matchMedia("(max-width: 700px)").matches){document.body.classList.add("mobile-linear")}</script>
 <nav class="nav"><div class="nav-inner"><a class="brand" href="signal.html"><div class="brand-mark">S</div><div><div class="brand-text">SIGNAL</div><div class="brand-sub">Front Door</div></div></a><div class="small">Your progress is saved as you go.</div><a class="btn" href="signal.html">About SIGNAL</a></div></nav>
 <div class="frontdoor-wrap"><div class="fd-card">
 <div class="fd-step active" id="fd0"><div class="fd-meta">Welcome</div><h2>Bring what’s on your mind.</h2><p>Not what sounds important. Not what you think you should talk about. Just the thing that naturally keeps asking for your attention.</p><div class="note">Start with one real thing that has your attention. Your progress will be saved so you can keep moving without starting over.</div><div class="fd-actions"><span></span><button class="btn primary" onclick="go(1)">Start the conversation →</button></div></div>
@@ -48,32 +48,24 @@ function val(id){return(document.getElementById(id)?.value||"").trim()}
 function go(n){
   const active=document.activeElement;
   if(active && typeof active.blur==="function") active.blur();
-
   const next=document.getElementById("fd"+n);
+  saveLocal();
+
+  if(document.body.classList.contains("mobile-linear")){
+    if(next){
+      next.classList.add("mobile-reached");
+      setTimeout(()=>next.scrollIntoView({block:"start",behavior:"auto"}),20);
+    }
+    return;
+  }
+
   document.querySelectorAll(".fd-step").forEach(x=>{
     x.classList.remove("active");
     x.setAttribute("aria-hidden","true");
   });
   next.classList.add("active");
   next.setAttribute("aria-hidden","false");
-  saveLocal();
-
-  // iOS / in-app browsers can retain the previous form control's scroll offset.
-  // Reset every scroll container, then place the new card at the top of the viewport.
-  const resetView=()=>{
-    document.documentElement.scrollTop=0;
-    document.body.scrollTop=0;
-    window.scrollTo(0,0);
-    const wrap=document.querySelector(".frontdoor-wrap");
-    if(wrap){
-      wrap.scrollTop=0;
-      wrap.scrollIntoView({block:"start",inline:"nearest",behavior:"auto"});
-    }
-    next.scrollIntoView({block:"start",inline:"nearest",behavior:"auto"});
-  };
-  resetView();
-  setTimeout(resetView,50);
-  setTimeout(resetView,250);
+  window.scrollTo(0,0);
 }
 function need(id,n){if(!val(id)){document.getElementById(id).focus();return}go(n)}
 function choose(el,v){
@@ -171,6 +163,7 @@ async function contactNext(){
 
 async function showSummary(){
   saveLocal();
+  document.getElementById("fd8")?.classList.add("mobile-reached");
   let d=data(),rows=[
     ["What you’re noticing",d.notice],
     ["Signal vs. Noise",d.signalVsNoise||"Still deciding"],
@@ -193,6 +186,7 @@ async function complete(){
   if(btn){btn.disabled=false;btn.textContent="Register + save SIGNAL →"}
   let d=data();
   completeText.innerHTML=`<strong>${esc(d.firstName)} ${esc(d.lastName)}</strong><br>${esc(d.email)} • ${esc(d.mobile)}<br><br>Status: Registered • Share preference: ${esc(d.sharePreference)}${ok?"":"<br><br><strong>Connection issue:</strong> your browser kept your answers, but the tracker may need another submission."}`;
+  document.getElementById("fd10")?.classList.add("mobile-reached");
   go(10);
 }
 
