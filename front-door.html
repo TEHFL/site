@@ -3,7 +3,7 @@
 <div class="frontdoor-wrap"><div class="fd-card">
 <div class="fd-step active" id="fd0"><div class="fd-meta">Welcome</div><h2>Bring what’s on your mind.</h2><p>Not what sounds important. Not what you think you should talk about. Just the thing that naturally keeps asking for your attention.</p><div class="note">Start with one real thing that has your attention. Your progress will be saved so you can keep moving without starting over.</div><div class="fd-actions"><span></span><button class="btn primary" onclick="go(1)">Start the conversation →</button></div></div>
 <div class="fd-step" id="fd1"><div class="fd-meta">1 • Signal Spotting</div><h2>What are you noticing?</h2><p>Do not explain it perfectly yet. Just name what keeps surfacing.</p><textarea id="notice" placeholder="Something I keep noticing is..."></textarea><div class="fd-actions"><button class="btn" onclick="go(0)">← Back</button><button class="btn primary" onclick="need('notice',2)">Continue →</button></div></div>
-<div class="fd-step" id="fd2"><div class="fd-meta">Save your place</div><h2>What should we call you?</h2><p>We ask for just enough information to save your place. The rest can wait until registration.</p><div class="summary-grid"><input id="first" placeholder="First name"><input id="email" type="email" placeholder="Email"></div><div class="fd-actions"><button class="btn" onclick="go(1)">← Back</button><button class="btn primary" onclick="contactNext()">Save & continue →</button></div></div>
+<div class="fd-step" id="fd2"><div class="fd-meta">Save your place</div><h2>What should we call you?</h2><p>We ask for just enough information to save your progress on this device. The rest can wait until registration.</p><div class="summary-grid"><input id="first" placeholder="First name" autocomplete="given-name"><input id="email" type="email" placeholder="Email" autocomplete="email"></div><div class="note" id="contactError" style="display:none;margin-top:12px"></div><div class="fd-actions"><button class="btn" onclick="go(1)">← Back</button><button class="btn primary" onclick="contactNext()">Save & continue →</button></div></div>
 <div class="fd-step" id="fd3"><div class="fd-meta">2 • Signal or Noise?</div><h2>Does this deserve your attention — or is it simply competing for it?</h2><div class="choices"><button class="choice" onclick="choose(this,'This keeps repeating')">This keeps repeating</button><button class="choice" onclick="choose(this,'This feels unusually important')">This feels unusually important</button><button class="choice" onclick="choose(this,'This may just be noise')">This may just be noise</button><button class="choice" onclick="choose(this,'I do not know yet')">I don’t know yet</button></div><div class="fd-actions"><button class="btn" onclick="go(2)">← Back</button><button class="btn primary" onclick="go(4)">Look underneath →</button></div></div>
 <div class="fd-step" id="fd4"><div class="fd-meta">3 • The Signal Under the Signal</div><h2>What may be underneath the first thing you noticed?</h2><p>A feeling. A fear. A need. A pattern. An unfinished conversation. Stay curious without forcing certainty.</p><textarea id="under" placeholder="Underneath this, I wonder if..."></textarea><div class="fd-actions"><button class="btn" onclick="go(3)">← Back</button><button class="btn primary" onclick="go(5)">Continue →</button></div></div>
 <div class="fd-step" id="fd5"><div class="fd-meta">4 • Identify Needs</div><h2>What might this be asking from you right now?</h2><p>Attention? Information? Rest? Support? A boundary? A conversation? Action? More time?</p><textarea id="needs" placeholder="What this may need is..."></textarea><div class="fd-actions"><button class="btn" onclick="go(4)">← Back</button><button class="btn primary" onclick="go(6)">Continue →</button></div></div>
@@ -131,13 +131,23 @@ async function submitRegistration(){
 }
 
 async function contactNext(){
-  if(!val("first")){first.focus();return}
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val("email"))){email.focus();return}
+  const err=document.getElementById("contactError");
+  if(err){err.style.display="none";err.textContent=""}
+  if(!val("first")){
+    if(err){err.textContent="Please enter your first name.";err.style.display="block"}
+    first.focus();return
+  }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val("email"))){
+    if(err){err.textContent="Please enter a valid email address.";err.style.display="block"}
+    email.focus();return
+  }
   saveLocal();
   const btn=document.activeElement;
   if(btn){btn.disabled=true;btn.textContent="Saving…"}
-  if(btn){btn.disabled=false;btn.textContent="Save & continue →"}
-  go(3);
+  setTimeout(()=>{
+    if(btn){btn.disabled=false;btn.textContent="Save & continue →"}
+    go(3);
+  },180);
 }
 
 async function showSummary(){
