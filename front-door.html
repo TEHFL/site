@@ -48,17 +48,32 @@ function val(id){return(document.getElementById(id)?.value||"").trim()}
 function go(n){
   const active=document.activeElement;
   if(active && typeof active.blur==="function") active.blur();
-  document.querySelectorAll(".fd-step").forEach(x=>x.classList.remove("active"));
+
   const next=document.getElementById("fd"+n);
-  next.classList.add("active");
-  saveLocal();
-  requestAnimationFrame(()=>{
-    requestAnimationFrame(()=>{
-      window.scrollTo(0,0);
-      const wrap=document.querySelector(".frontdoor-wrap");
-      if(wrap) wrap.scrollIntoView({block:"start",behavior:"auto"});
-    });
+  document.querySelectorAll(".fd-step").forEach(x=>{
+    x.classList.remove("active");
+    x.setAttribute("aria-hidden","true");
   });
+  next.classList.add("active");
+  next.setAttribute("aria-hidden","false");
+  saveLocal();
+
+  // iOS / in-app browsers can retain the previous form control's scroll offset.
+  // Reset every scroll container, then place the new card at the top of the viewport.
+  const resetView=()=>{
+    document.documentElement.scrollTop=0;
+    document.body.scrollTop=0;
+    window.scrollTo(0,0);
+    const wrap=document.querySelector(".frontdoor-wrap");
+    if(wrap){
+      wrap.scrollTop=0;
+      wrap.scrollIntoView({block:"start",inline:"nearest",behavior:"auto"});
+    }
+    next.scrollIntoView({block:"start",inline:"nearest",behavior:"auto"});
+  };
+  resetView();
+  setTimeout(resetView,50);
+  setTimeout(resetView,250);
 }
 function need(id,n){if(!val(id)){document.getElementById(id).focus();return}go(n)}
 function choose(el,v){
@@ -151,14 +166,8 @@ async function contactNext(){
     email.focus();return
   }
   saveLocal();
-  const btn=document.activeElement;
-  if(btn){btn.disabled=true;btn.textContent="Saving…"}
   document.querySelectorAll("#fd2 input").forEach(el=>el.blur());
-  setTimeout(()=>{
-    if(btn){btn.disabled=false;btn.textContent="Save & continue →"}
-    go(3);
-  },300);
-}
+  go(3);
 
 async function showSummary(){
   saveLocal();
@@ -209,5 +218,6 @@ function resetFlow(){
   }catch(e){}
 })();
 
+document.querySelectorAll(".fd-step").forEach(x=>x.setAttribute("aria-hidden",x.classList.contains("active")?"false":"true"));
 document.querySelectorAll("textarea,input").forEach(el=>el.addEventListener("input",saveLocal));
 </script></body></html>
