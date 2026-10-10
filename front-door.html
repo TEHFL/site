@@ -84,38 +84,52 @@ function esc(s){return(s||"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":
 async function submitRegistration(){
   const d=data();
   const privateMode=d.sharePreference==="Private";
-  const params=new URLSearchParams();
-  const put=(key,value)=>params.append(FORM_FIELDS[key],value||"");
-  put("contactId",d.registrantId);
-  put("firstName",d.firstName);
-  put("lastName",d.lastName);
-  put("email",d.email);
-  put("mobile",d.mobile);
-  put("notice",privateMode?"":d.notice);
-  put("signalVsNoise",privateMode?"":d.signalVsNoise);
-  put("signalUnderSignal",privateMode?"":d.signalUnderSignal);
-  put("needs",privateMode?"":d.needs);
-  put("grace",privateMode?"":d.grace);
-  put("conversation",privateMode?"":d.conversation);
-  put("sharePreference",d.sharePreference);
-  put("event",d.event);
-  put("source",d.source);
-  put("startedAt",d.startedAt);
-  put("signalCompleted","Yes");
-  put("registeredAt",new Date().toISOString());
-  try{
-    await fetch(FORM_ENDPOINT,{
-      method:"POST",
-      mode:"no-cors",
-      headers:{"Content-Type":"application/x-www-form-urlencoded"},
-      body:params.toString(),
-      keepalive:true
-    });
-    return true;
-  }catch(err){
-    console.error("SIGNAL form submission failed",err);
-    return false;
+  const targetName="googleFormSink";
+  let sink=document.querySelector('iframe[name="'+targetName+'"]');
+  if(!sink){
+    sink=document.createElement("iframe");
+    sink.name=targetName;
+    sink.setAttribute("aria-hidden","true");
+    sink.style.width="0";
+    sink.style.height="0";
+    sink.style.border="0";
+    sink.style.position="absolute";
+    sink.style.left="-9999px";
+    document.body.appendChild(sink);
   }
+  const form=document.createElement("form");
+  form.method="POST";
+  form.action=FORM_ENDPOINT;
+  form.target=targetName;
+  const add=(key,value)=>{
+    const input=document.createElement("input");
+    input.type="hidden";
+    input.name=FORM_FIELDS[key];
+    input.value=value||"";
+    form.appendChild(input);
+  };
+  add("contactId",d.registrantId);
+  add("firstName",d.firstName);
+  add("lastName",d.lastName);
+  add("email",d.email);
+  add("mobile",d.mobile);
+  add("notice",privateMode?"":d.notice);
+  add("signalVsNoise",privateMode?"":d.signalVsNoise);
+  add("signalUnderSignal",privateMode?"":d.signalUnderSignal);
+  add("needs",privateMode?"":d.needs);
+  add("grace",privateMode?"":d.grace);
+  add("conversation",privateMode?"":d.conversation);
+  add("sharePreference",d.sharePreference);
+  add("event",d.event);
+  add("source",d.source);
+  add("startedAt",d.startedAt);
+  add("signalCompleted","Yes");
+  add("registeredAt",new Date().toISOString());
+  document.body.appendChild(form);
+  form.submit();
+  setTimeout(()=>form.remove(),1000);
+  await new Promise(resolve=>setTimeout(resolve,1200));
+  return true;
 }
 
 async function contactNext(){
