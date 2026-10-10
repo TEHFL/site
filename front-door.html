@@ -16,23 +16,22 @@
 <script>
 const FORM_ENDPOINT="https://docs.google.com/forms/d/e/1FAIpQLSevSeZiBJRZMCleMm2TcJQOjP_pS94YrMBQhaaKgrffP9Sdeg/formResponse";
 const FORM_FIELDS={
-  contactId:"entry.1183771810",
-  firstName:"entry.1581473206",
+  contactId:"entry.301762151",
+  firstName:"entry.58780466",
   lastName:"entry.1559895487",
-  email:"entry.1655293817",
-  mobile:"entry.2080619303",
-  notice:"entry.1304397170",
-  signalVsNoise:"entry.880479960",
-  signalUnderSignal:"entry.944023374",
-  needs:"entry.158137039",
-  grace:"entry.2068595051",
-  conversation:"entry.186805965",
+  email:"entry.1787733184",
+  mobile:"entry.610731937",
+  notice:"entry.1179189163",
+  signalVsNoise:"entry.1019833845",
+  signalUnderSignal:"entry.800933330",
+  needs:"entry.88849145",
+  grace:"entry.821090000",
+  conversation:"entry.1932546411",
   sharePreference:"entry.946346664",
-  event:"entry.1651405906",
-  source:"entry.706440621",
-  startedAt:"entry.830908518",
-  signalCompleted:"entry.1654791447",
-  registeredAt:"entry.795635831"
+  event:"entry.84973371",
+  source:"entry.276495509",
+  startedAt:"entry.1206892229",
+  signalCompleted:"entry.303119",
 };
 const key="signalFrontDoorV1";
 const idKey="signalRegistrantIdV1";
@@ -124,7 +123,6 @@ async function submitRegistration(){
   add("source",d.source);
   add("startedAt",d.startedAt);
   add("signalCompleted","Yes");
-  add("registeredAt",new Date().toISOString());
   document.body.appendChild(form);
   form.submit();
   setTimeout(()=>form.remove(),1000);
